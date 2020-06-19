@@ -70,6 +70,9 @@ path = params[:path] || "/"
 dns = Resolv::DNS.open
 
 File.readlines(inputfile).each do |line|
+    # do not overload the que
+    hydra.run if hydra.queued_requests.size > 50
+
     r1 = Typhoeus::Request.new("http://#{line.strip}#{path}", followlocation: false, timeout: 1)
     r1.on_complete do |response|
         puts "[+] Content match: #{r1.url}".green if response.body.include? content
@@ -100,4 +103,6 @@ File.readlines(inputfile).each do |line|
         end
     end
 end
+
+# run the last "< 50" requests
 hydra.run
