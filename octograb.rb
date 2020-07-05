@@ -90,7 +90,7 @@ File.readlines(inputfile).each do |line|
     hydra.queue(r2)
 
     # check if current line is already an ip address
-    unless line =~ Resolv::IPv4::Regex ? true : false
+    unless line.strip =~ Resolv::IPv4::Regex ? true : false
         begin
             ip = dns.getaddress(line.strip)
             r3 = Typhoeus::Request.new("http://#{ip}#{path}", followlocation: follow_r, timeout: 1)
