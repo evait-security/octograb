@@ -4,6 +4,8 @@ require 'colorize'
 require 'optparse'
 
 params = {}
+follow_r = false
+
 ARGV << '-h' if ARGV.empty?
 option_parser = OptionParser.new do |opts|
     opts.banner = "Usage: octograb.rb [options]"
@@ -16,6 +18,9 @@ option_parser = OptionParser.new do |opts|
     opts.on('-aUSERAGENT', '--useragent=USERAGENT', "Specify the user agent string")
     opts.on('-tTHREADS', '--threads=THREADS', Integer, "Number of paralell requests. Default =  50")
     opts.on('-tTHREADS', '--threads=THREADS', Integer, "Number of paralell requests. Default =  50")
+    opts.on("-r", "--follow-redirects", "Follow redirects (301)") do
+        follow_r = true
+    end
     opts.on("-h", "--help", "Show this message") do
         puts opts
         exit
@@ -73,11 +78,11 @@ File.readlines(inputfile).each do |line|
     # do not overload the que
     hydra.run if hydra.queued_requests.size > 50
 
-    r1 = Typhoeus::Request.new("http://#{line.strip}#{path}", followlocation: false, timeout: 1)
+    r1 = Typhoeus::Request.new("http://#{line.strip}#{path}", followlocation: follow_r, timeout: 1)
     r1.on_complete do |response|
         puts "[+] Content match: #{r1.url}".green if response.body.include? content
     end
-    r2 = Typhoeus::Request.new("https://#{line.strip}#{path}", followlocation: false, ssl_verifyhost: 0, timeout: 1)
+    r2 = Typhoeus::Request.new("https://#{line.strip}#{path}", followlocation: follow_r, ssl_verifyhost: 0, timeout: 1)
     r2.on_complete do |response|
         puts "[+] Content match: #{r2.url}".green if response.body.include? content
     end
@@ -88,11 +93,11 @@ File.readlines(inputfile).each do |line|
     unless line =~ Resolv::IPv4::Regex ? true : false
         begin
             ip = dns.getaddress(line.strip)
-            r3 = Typhoeus::Request.new("http://#{ip}#{path}", followlocation: false, timeout: 1)
+            r3 = Typhoeus::Request.new("http://#{ip}#{path}", followlocation: follow_r, timeout: 1)
             r3.on_complete do |response|
                 puts "[+] Content match: #{r3.url}".green if response.body.include? content
             end
-            r4 = Typhoeus::Request.new("https://#{ip}#{path}", followlocation: false, timeout: 1, ssl_verifyhost: 0)
+            r4 = Typhoeus::Request.new("https://#{ip}#{path}", followlocation: follow_r, timeout: 1, ssl_verifyhost: 0)
             r4.on_complete do |response|
                 puts "[+] Content match: #{r4.url}".green if response.body.include? content
             end
