@@ -23,6 +23,8 @@ All requests will be threaded by default (50 threads). You can justify this beha
 
 - output file parameter
 - input match file (URL:MATCH) to define multiple urls to check
+- add `--data` option for post commands
+- add `--header` in order to add custom headers
 
 ## FAQ
 
