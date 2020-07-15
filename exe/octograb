@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+require 'octograb'
+require 'optparse'
+
+params = {}
+follow_r = false
+
+ARGV << '-h' if ARGV.empty?
+option_parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: octograb.rb [options]'
+  opts.separator ''
+  opts.separator 'Mandatory parameters:'
+  opts.on('-fFILE', '--inputfile=FILENAME', 'Input file which contains a list of hostnames')
+  opts.on('-cCONTENT', '--content=CONTENT', 'Content string that has to match in response body')
+  opts.separator 'Optional parameters:'
+  opts.on('-pPATH', '--path=PATH', 'Specify the url path with a foregoing slash, default = /')
+  opts.on('-aUSERAGENT', '--useragent=USERAGENT', 'Specify the user agent string')
+  opts.on('-tTHREADS', '--threads=THREADS', Integer, 'Number of paralell requests. Default =  50')
+  opts.on('-tTHREADS', '--threads=THREADS', Integer, 'Number of paralell requests. Default =  50')
+  opts.on('-r', '--follow-redirects', 'Follow redirects (301)') do
+    follow_r = true
+  end
+  opts.on('-h', '--help', 'Show this message') do
+    puts opts
+    exit
+  end
+  opts.separator ''
+  opts.separator 'Example:'
+  opts.separator "     octograb.rb -f urls.txt -p /.git/HEAD -c 'ref:'".green
+  opts.separator ''
+  opts.separator "Each line will be parsed and resolved in four requests. Assuming the first entry in urls.txt is 'example.com' and can be resolved to 12.12.12.12"
+  opts.separator "     -> http://example.com/.git/HEAD - 'ref:' not contained in response"
+  opts.separator "     -> https://example.com/.git/HEAD - 'ref:' not contained in response"
+  opts.separator "     -> http://12.12.12.12/.git/HEAD - 'ref:' found in response"
+  opts.separator "     -> https://12.12.12.12/.git/HEAD - 'ref:' not contained in response"
+  opts.separator ''
+end
+option_parser.parse!(into: params)
+
+if params[:inputfile]
+  inputfile = params[:inputfile]
+  unless File.exist?(inputfile)
+    puts option_parser.help
+    puts '[-] Inputfile could not be found'.red
+    exit 1
+  end
+else
+  puts option_parser.help
+  puts '[-] Inputfile is missing'.red
+  exit 1
+end
+
+unless params[:content]
+  puts option_parser.help
+  puts '[-] Content parameter is missing'.red
+  exit 1
+end
+
+params[:follow_r] = follow_r
+
+octograb = Octograb::Octograbber.new(params)
+
+octograb.run

@@ -1,5 +1,4 @@
 source 'https://rubygems.org'
 
-gem "typhoeus"
-gem 'colorize'
-gem 'ruby-progressbar'
+# Specify your gem's dependencies in octograb.gemspec
+gemspec
